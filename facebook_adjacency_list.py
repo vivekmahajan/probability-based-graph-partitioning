@@ -1,3 +1,5 @@
+#This script to convert the facebook graph into formats we want. First one is for metis and the second one is for edge weights
+#usage python facebook_adjacency_list.py >graph_with_weights 2>graph_metis
 import sys
 
 user_access = {}
