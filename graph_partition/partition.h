@@ -6,6 +6,7 @@
 #include<boost/tokenizer.hpp>
 #include<cassert>
 #include<algorithm>
+#include<map>
 
 using namespace std;
 
@@ -20,14 +21,83 @@ bool compare_function(pair<int, float> p1, pair<int, float> p2){
 }
 
 class graph{
+    public:
     vector< vector<struct edge> > grph;
     vector< pair<int, float> > node_weights;
     int no_nodes, no_edges;
-    public:
         graph(char *filename);
+        graph(int no_nodes);//constructor overloading
         void calculate_weights();
         void graph_check();
+        graph* cluster_nodes();
 };
+
+graph* graph::cluster_nodes(){
+    vector<int> cluster(this->no_nodes, 0);
+    vector<bool> visited(this->no_nodes, 0);
+    int current_cluster_no = 0;
+    for(int i=0; i<this->node_weights.size(); i++){
+        int current_node = this->node_weights[i].first;
+        //first check if clutering that nodes if allowed or not
+        if(visited[current_node] == 1){
+            continue;
+        }
+        //else going through all the friends of the selected node and clustering them
+        for(int j=0; j<this->grph[current_node].size(); j++){
+            struct edge node = grph[current_node][j];
+            cluster[node.node] = current_cluster_no;
+            //going through all the neighbors of this node and mark them as visited
+            for(int k=0; k<this->grph[node.node].size(); k++){
+                visited[grph[node.node][k].node] = 1;
+            }
+        }
+        current_cluster_no ++;
+    }
+    //creating the graph for the next stage
+    graph * new_graph = new graph(current_cluster_no);
+    vector< map<int, int> > build_graph(current_cluster_no);
+    for(int i=0; i< cluster.size(); i++){
+        int cur_cluster = cluster[i];
+        //for each node visit its neighbors. check whether they lie in different cluster
+        for(int j=0; j<this->grph[i].size(); j++){
+            struct edge neigh = this->grph[i][j];
+            int neigh_cluster = cluster[neigh.node];
+            if(neigh_cluster!=cur_cluster){
+                map<int, int>::iterator it;
+                it = build_graph[cur_cluster].find(neigh_cluster);
+                if(it!=build_graph[cur_cluster].end()){
+                    build_graph[cur_cluster][neigh_cluster] += neigh.weight;
+                }else{
+                    build_graph[cur_cluster][neigh_cluster] = neigh.weight;
+                }
+            }
+        }
+
+    }
+    //we have the adjancey list in build_graph. Now iterate over it and build the graph
+    for(int i=0; i<build_graph.size(); i++){
+        map<int, int>::iterator it;
+        for(it=build_graph[i].begin(); it!=build_graph[i].end(); it++){
+            struct edge temp;
+            temp.node = it->first;
+            temp.weight = it->second;
+            new_graph->grph[i].push_back(temp);
+        }
+
+    }
+
+    return new_graph;
+
+}
+
+graph::graph(int no_nodes){
+   this->no_nodes = no_nodes;
+   vector< struct edge > temp;
+   for(int i=0; i<no_nodes;i++){
+        grph.push_back(temp);
+   }
+}
+
 void graph::calculate_weights(){
 
     for(int i=0; i<this->grph.size(); i++){
@@ -49,6 +119,7 @@ void graph::calculate_weights(){
     }
 
 }
+
 
 void graph::graph_check(){
     assert(grph.size()==this->no_nodes);
