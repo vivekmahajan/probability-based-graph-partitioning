@@ -1,4 +1,4 @@
-#This script to convert the facebook graph into formats we want. First one is for metis and the second one is for edge weights
+#his script to convert the facebook graph into formats we want. First one is for metis and the second one is for edge weights
 #usage python facebook_adjacency_list.py >graph_with_weights 2>graph_metis
 import sys
 
@@ -6,12 +6,14 @@ user_access = {}
 
 for wall_post in open("./datasets/facebook-wall.txt.anon", "r"):
     users = wall_post.split("\t")
-    if user_access.has_key((int(users[0]), int(users[1]))):
-        user_access[(int(users[0]), int(users[1]))] += 1
-    elif user_access.has_key((int(users[1]), int(users[0]))):
-        user_access[(int(users[1]), int(users[0]))] += 1
+    user1 = int(users[0]) - 1
+    user2 = int(users[1]) - 1
+    if user_access.has_key((user1, user2)):
+        user_access[(user1, user2)] += 1
+    elif user_access.has_key((user2, user1)):
+        user_access[(user2, user1)] += 1
     else:
-        user_access[(int(users[0]), int(users[1]))] = 1
+        user_access[(user1, user2)] = 2
 
 
 for key in user_access.keys():
@@ -21,8 +23,8 @@ for key in user_access.keys():
 adjacency_list = {}
 for friends in open("./datasets/facebook-links.txt.anon", "r"):
     users = friends.split("\t")
-    user1 = int(users[0])
-    user2 = int(users[1])
+    user1 = int(users[0]) - 1
+    user2 = int(users[1]) - 1
     if not adjacency_list.has_key(user1):
         adjacency_list[user1] = {}
     if not adjacency_list.has_key(user2):
@@ -35,8 +37,8 @@ for friends in open("./datasets/facebook-links.txt.anon", "r"):
         adjacency_list[user1][str(user2)] = user_access[(user2, user1)] 
         adjacency_list[user2][str(user1)] = user_access[(user2, user1)]   
     else:
-        adjacency_list[user1][str(user2)] = 0 
-        adjacency_list[user2][str(user1)] = 0   
+        adjacency_list[user1][str(user2)] = 1 
+        adjacency_list[user2][str(user1)] = 1   
 
 keys = []
 for key in (adjacency_list.keys()):

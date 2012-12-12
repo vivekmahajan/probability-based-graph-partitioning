@@ -1,2 +1,3 @@
-HEADERS += partition.h
+HEADERS += partition.h \
+    evaluation.h
 SOURCES += partition.cpp
