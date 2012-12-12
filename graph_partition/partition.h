@@ -39,7 +39,22 @@ class graph{
     void display();
     void display_weights();
     void calc_cluster_weights();
+    void calc_node_w(vector<int>);
 };
+
+void graph::calc_node_w(vector<int> our_cluster){
+    this->node_w.clear();
+    int max = our_cluster[0];
+    for(int i=0; i< our_cluster.size(); i++){
+        if(max < our_cluster[i])
+            max = our_cluster[i];
+    }
+    for(int i=0; i<max+1; i++){
+        this->node_w.push_back(0);
+    }
+    for(int i=0; i<our_cluster.size(); i++)
+        this->node_w[our_cluster[i]]++;
+}
 
 
 graph::graph(int no_nodes, int limit, vector<int>& new_weights){
@@ -49,9 +64,10 @@ graph::graph(int no_nodes, int limit, vector<int>& new_weights){
    for(int i=0; i<no_nodes;i++){
         grph.push_back(temp);
    }
+   /*
    for(int i=0; i<new_weights.size(); i++){
     this->node_w.push_back(new_weights[i]);
-   }
+   }*/
 
 }
 
@@ -93,10 +109,10 @@ graph::graph(char* filename, int limit){
 }
 
 void graph::calc_cluster_weights(){
-
+    this->cluster_weights.clear();
     for(unsigned int i=0; i<this->grph.size(); i++){
 
-        int sum = 0;
+        int sum = node_w[i];
         for(unsigned int j=0; j<this->grph[i].size(); j++){
 
             sum += this->node_w[this->grph[i][j].node];
@@ -134,15 +150,13 @@ void graph::display(){
 }
 graph* graph::cluster_nodes(){
 
-
-    this->calc_cluster_weights(); //need to know to avoid unbalanced clusters
+    this->calc_cluster_weights(); //need do this to avoid unbalanced clusters
     vector<int> new_cluster_weights;
 
-
-    for(int i=0; i < this->no_nodes; i++){
-        this->cluster.push_back(0);
+    for(unsigned int i=0; i < this->grph.size(); i++){
+        this->cluster.push_back(-1);
     }
-    vector<bool> visited(this->no_nodes, 0);
+    vector<bool> visited(this->grph.size(), 0);
     int current_cluster_no = 0;
 
     for(unsigned int i=0; i<this->node_weights.size(); i++){
@@ -170,7 +184,18 @@ graph* graph::cluster_nodes(){
         }
         current_cluster_no ++;
     }
+    //assign clusters to the unassigned ones
+    for(unsigned int i=0; i< cluster.size(); i++){
+        if(cluster[i] == -1){
+            cluster[i] = current_cluster_no;
+            current_cluster_no ++;
+        }
+
+    }
+
+
     cout<<"Total clusters "<<current_cluster_no<<endl;
+
 
     //creating the graph for the next stage
     graph * new_graph = new graph(current_cluster_no, this->limit, new_cluster_weights);
