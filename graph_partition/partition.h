@@ -17,7 +17,7 @@ struct edge{
 };
 
 bool compare_function(pair<int, float> p1, pair<int, float> p2){
-    return(p1.second>p2.second);
+    return(p1.second<p2.second);
 }
 
 class graph{
